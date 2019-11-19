@@ -39,8 +39,10 @@ raw <- map_dfr(my_list, read_csv, .id = "source", col_types = cols(
           final_weight = col_double(),
           timestamp = col_datetime(format = "")
           ))
-
 skim(raw)
+
+fs::file_delete("master.zip")
+fs::file_delete("2018-live-poll-results-master")
 ```
 
 ```{r}
@@ -53,5 +55,18 @@ x %>%
   ggplot(aes(x = female, y = dvote)) + 
   geom_jitter(height = 0.2, width = 0.2, alpha = 0.02) +
   geom_smooth(method = "lm", se = FALSE)
+```
+
+```{r}
+glm.obj <- glm(dvote ~ female, data = x, family = "binomial")
+
+my_data <- tibble(female = c(0, 0, 1))
+
+predict(glm.obj, newdata = my_data, type = "response")
+
+xx <- x %>%
+  mutate(prediction = predict(glm.obj, newdata = x, type = "response"))
+
+lm(data = xx, dvote ~ prediction)
 ```
 
